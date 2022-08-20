@@ -61,4 +61,4 @@ php artisan key:generate
 
 
 Acesse o projeto
-[http://localhost:8180](http://cryptobank.local:8180)
+[http://cryptobank.local:8180](http://cryptobank.local:8180)
