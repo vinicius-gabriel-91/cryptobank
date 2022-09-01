@@ -1,8 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\Customer\Create;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\Customer\Create;
+use App\Http\Controllers\Auth\RegisteredUserController;
+use App\Http\Controllers\Auth\AuthenticatedSessionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,4 +20,5 @@ use App\Http\Controllers\Api\Customer\Create;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
-Route::get('/customer/create', [Create::class, 'createUser']);
+Route::post('register', [Create::class, 'registerCustomer']);
+Route::post('login', [AuthenticatedSessionController::class, 'store']);
