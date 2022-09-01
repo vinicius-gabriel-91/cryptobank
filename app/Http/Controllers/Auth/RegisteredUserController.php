@@ -1,25 +1,23 @@
 <?php
-/**
- * @author      Webjump Core Team <dev@webjump.com.br>
- * @copyright   2022 Webjump (http://www.webjump.com.br)
- * @license     http://www.webjump.com.br  Copyright
- * @link        http://www.webjump.com.br
- */
-declare(strict_types=1);
 
-namespace App\Http\Controllers\Api\Customer;
+namespace App\Http\Controllers\Auth;
 
-use App\Models\User;
-use Psr\Log\LoggerInterface;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
-use Illuminate\Validation\Rules;
-use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
+use Psr\Log\LoggerInterface;
+use Illuminate\Http\Response;
 
-class Create extends Controller
+/**
+ * Handles registration request
+ */
+class RegisteredUserController extends Controller
 {
     private LoggerInterface $logger;
     private Response $response;
@@ -39,20 +37,26 @@ class Create extends Controller
     }
 
     /**
+     * Display the registration view.
+     *
+     * @return \Illuminate\View\View
+     */
+    public function create()
+    {
+        return view('auth.register');
+    }
+
+    /**
      * Handle an incoming registration request.
      *
      * @param Request $request
      * @return bool|Response
      */
-    public function registerCustomer(Request $request)
+    public function store(Request $request)
     {
         try {
             $request->validate([
                 'name' => ['required', 'string', 'max:255'],
-                'last_name' => ['required', 'string', 'max:255'],
-                'taxvat' => ['required', 'string', 'max:255'],
-                'address' => ['required', 'string', 'max:255'],
-                'birth_date' => ['required', 'string', 'max:255'],
                 'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
                 'password' => ['required', Rules\Password::defaults()],
             ]);
@@ -68,15 +72,13 @@ class Create extends Controller
 
         $user = User::create([
             'name' => $request->name,
-            'last_name' => $request->last_name,
-            'taxvat' => $request->taxvat,
-            'address' => $request->address,
-            'birth_date' => $request->birth_date,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
         event(new Registered($user));
+
+        Auth::login($user);
 
         return true;
     }
