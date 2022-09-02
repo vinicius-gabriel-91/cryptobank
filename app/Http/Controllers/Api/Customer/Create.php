@@ -1,10 +1,4 @@
 <?php
-/**
- * @author      Webjump Core Team <dev@webjump.com.br>
- * @copyright   2022 Webjump (http://www.webjump.com.br)
- * @license     http://www.webjump.com.br  Copyright
- * @link        http://www.webjump.com.br
- */
 declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Customer;
@@ -14,11 +8,15 @@ use Psr\Log\LoggerInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rules;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Class for customer criation
+ */
 class Create extends Controller
 {
     private LoggerInterface $logger;
@@ -42,7 +40,7 @@ class Create extends Controller
      * Handle an incoming registration request.
      *
      * @param Request $request
-     * @return bool|Response
+     * @return JsonResponse|Response
      */
     public function registerCustomer(Request $request)
     {
@@ -78,6 +76,13 @@ class Create extends Controller
 
         event(new Registered($user));
 
-        return true;
+        $token = $user->createToken('auth_token');
+
+        return response()
+            ->json([
+                'data' => [
+                    'token' => $token->plainTextToken
+                ]
+            ]);
     }
 }
