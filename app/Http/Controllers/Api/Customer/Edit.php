@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\Customer;
 
+use App\Models\User;
 use Psr\Log\LoggerInterface;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -12,15 +13,14 @@ use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use Illuminate\Validation\ValidationException;
 use App\Models\Api\CustomerRepositoryInterface;
+use App\Models\Services\Validations\ArgumentsValidator;
 
-/**
- * Class for customer creation
- */
-class Create extends Controller
+class Edit extends Controller
 {
     private LoggerInterface $logger;
     private Response $response;
     private CustomerRepositoryInterface $customerRepository;
+    private ArgumentsValidator $argumentsValidator;
 
     /**
      * Class dependencies
@@ -28,36 +28,34 @@ class Create extends Controller
      * @param CustomerRepositoryInterface $customerRepository
      * @param Response $response
      * @param LoggerInterface $logger
+     * @param ArgumentsValidator $argumentsValidator
      */
     public function __construct(
         CustomerRepositoryInterface $customerRepository,
         Response $response,
-        LoggerInterface $logger
+        LoggerInterface $logger,
+        ArgumentsValidator $argumentsValidator
     ) {
         $this->logger = $logger;
         $this->response = $response;
         $this->customerRepository = $customerRepository;
+        $this->argumentsValidator = $argumentsValidator;
     }
 
     /**
-     * Handle an incoming registration request.
+     * Updates current customer information
      *
      * @param Request $request
-     * @return JsonResponse|Response
+     * @return \App\Models\User|Response
      */
-    public function createCustomer(Request $request)
+    public function editCustomer(Request $request)
     {
         try {
-            $request->validate([
-                'name' => ['required', 'string', 'max:255'],
-                'last_name' => ['required', 'string', 'max:255'],
-                'taxvat' => ['required', 'string', 'max:255', 'unique:users'],
-                'address' => ['required', 'string', 'max:255'],
-                'birth_date' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-                'password' => ['required', Rules\Password::defaults()],
-            ]);
-        } catch (ValidationException $exception) {
+            $this->argumentsValidator->validateArguments(
+            CustomerRepositoryInterface::EDIT_CUSTOMER_REQUIRED_FIELDS,
+            $request->all()
+        );
+        } catch (\Exception $exception) {
             $this->logger->error($exception->getMessage());
             $this->response->setStatusCode(422, $exception->getMessage());
             $result = [
@@ -67,14 +65,6 @@ class Create extends Controller
             return $this->response->setContent($result);
         }
 
-        $user = $this->customerRepository->create($request->all());
-        $token = $user->createToken('auth_token');
-
-        return response()
-            ->json([
-                'data' => [
-                    'token' => $token->plainTextToken
-                ]
-            ]);
+        return $this->customerRepository->edit((int) $request->user()->id, $request->all());
     }
 }
