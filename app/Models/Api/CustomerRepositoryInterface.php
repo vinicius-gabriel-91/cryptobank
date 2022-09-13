@@ -12,6 +12,23 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
  */
 interface CustomerRepositoryInterface
 {
+    public const CREATE_CUSTOMER_REQUIRED_FIELDS = [
+        'name',
+        'last_name',
+        'taxvat',
+        'address',
+        'birth_date',
+        'email',
+        'password'
+    ];
+
+    public const EDIT_CUSTOMER_REQUIRED_FIELDS = [
+        'name',
+        'last_name',
+        'address',
+        'email'
+    ];
+
     /**
      * Retrieves customer by id
      *
@@ -29,4 +46,21 @@ interface CustomerRepositoryInterface
      * @return bool
      */
     public function delete(int $customerId): bool;
+
+    /**
+     * Creates new user
+     *
+     * @param array $customerData
+     * @return User
+     */
+    public function create(array $customerData): User;
+
+    /**
+     * Updates existing user
+     *
+     * @param int $customerId
+     * @param array $customerData
+     * @return User
+     */
+    public function edit(int $customerId, array $customerData): User;
 }
