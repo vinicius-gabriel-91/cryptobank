@@ -19,7 +19,9 @@ class CreateBankAccountsTable extends Migration
                 ->constrained()
                 ->onDelete('cascade')
                 ->onUpdate('cascade');
-            $table->string('account_number')->nullable(false);
+            $table->string('account_number')
+                ->nullable(false)
+                ->unique();
             $table->float('balance');
             $table->timestamps();
         });
