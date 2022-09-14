@@ -17,6 +17,14 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\Api\CustomerRepositoryInterface::class,
             \App\Models\Customer\CustomerRepository::class
         );
+        app()->bind(
+            \App\Models\Api\BankAccountRepositoryInterface::class,
+            \App\Models\BankAccount\BankAccountRepository::class
+        );
+        app()->bind(
+            \Facade\FlareClient\Time\Time::class,
+            \Facade\FlareClient\Time\SystemTime::class
+        );
     }
 
     /**

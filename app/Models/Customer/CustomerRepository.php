@@ -76,7 +76,7 @@ class CustomerRepository implements CustomerRepositoryInterface
             $customerData
         );
 
-        $user = User::create([
+        $user = (new \App\Models\User)->create([
             'name' => $customerData['name'],
             'last_name' => $customerData['last_name'],
             'taxvat' => $customerData['taxvat'],
