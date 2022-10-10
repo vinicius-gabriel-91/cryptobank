@@ -8,6 +8,7 @@ use App\Models\BankAccount;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\UnauthorizedException;
 use App\Models\BankAccount\BankAccountRepository;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -42,8 +43,7 @@ class Get extends Controller
             return response()
                 ->json([
                     'data' => [
-                        'success' => false,
-                        'message' => "The account number does not match any bank account for current customer"
+                        'error' => $exception->getMessage()
                     ]
                 ])
                 ->setStatusCode(403);
@@ -51,11 +51,15 @@ class Get extends Controller
             return response()
                 ->json([
                     'data' => [
-                        'success' => false,
-                        'message' => "Bank account not found"
+                        'error' => "Bank account not found"
                     ]
                 ])
                 ->setStatusCode(400);
         }
+    }
+
+    public function getAccountList(Request $request): Collection
+    {
+        return $request->user()->accounts;
     }
 }
