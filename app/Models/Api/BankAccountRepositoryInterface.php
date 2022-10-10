@@ -38,19 +38,38 @@ interface BankAccountRepositoryInterface
     public function create(int $customerId, float $balance): BankAccount;
 
     /**
-     * Retrieves customer bank account list
-     *
-     * @param int $customerId
-     * @return mixed
-     */
-    public function getList(int $customerId);
-
-    /**
-     * Updates bank account balance
+     * Execute withdraw procedure
      *
      * @param string $accountNumber
-     * @param float $newBalance
+     * @param int $customerId
+     * @param float $value
      * @return BankAccount
      */
-    public function updateBalance(string $accountNumber, float $newBalance): BankAccount;
+    public function withdraw(string $accountNumber, int $customerId, float $value): BankAccount;
+
+    /**
+     * Execute deposit procedure
+     *
+     * @param string $accountNumber
+     * @param int $customerId
+     * @param float $value
+     * @return BankAccount
+     */
+    public function deposit(string $accountNumber, int $customerId, float $value): BankAccount;
+
+    /**
+     * Execute transfer procedure
+     *
+     * @param string $originAccount
+     * @param string $destinationAccount
+     * @param int $customerId
+     * @param float $balance
+     * @return BankAccount
+     */
+    public function transfer(
+        string $originAccount,
+        string $destinationAccount,
+        int $customerId,
+        float $balance
+    ): BankAccount;
 }

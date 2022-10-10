@@ -9,22 +9,22 @@ use InvalidArgumentException;
 use Facade\FlareClient\Time\Time;
 use Illuminate\Validation\UnauthorizedException;
 use App\Models\Api\BankAccountRepositoryInterface;
-use App\Models\Services\Validations\ArgumentsValidator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class BankAccountRepository implements BankAccountRepositoryInterface
 {
     private BankAccount $account;
-    private ArgumentsValidator $argumentsValidator;
     private Time $time;
 
+    /**
+     * @param BankAccount $account
+     * @param Time $time
+     */
     public function __construct(
         BankAccount $account,
-        ArgumentsValidator $argumentsValidator,
         Time $time
     ) {
         $this->account = $account;
-        $this->argumentsValidator = $argumentsValidator;
         $this->time = $time;
     }
 
@@ -41,7 +41,9 @@ class BankAccountRepository implements BankAccountRepositoryInterface
     {
         $account = $this->account->where('account_number', $accountNumber)->firstOrFail();
         if ((int) $account->user_id != $customerId) {
-            throw new UnauthorizedException();
+            throw new UnauthorizedException(
+                "The account number does not match any bank account for current customer"
+            );
         }
         return $account;
     }
@@ -83,25 +85,63 @@ class BankAccountRepository implements BankAccountRepositoryInterface
     }
 
     /**
-     * Retrieves customer bank account list
+     * Execute withdraw procedure
      *
+     * @param string $accountNumber
      * @param int $customerId
-     * @return mixed
+     * @param float $value
+     * @return BankAccount
      */
-    public function getList(int $customerId)
+    public function withdraw(string $accountNumber, int $customerId, float $value): BankAccount
     {
-        return;
+        $account = $this->get($customerId, $accountNumber);
+        if ((float) $account->balance < $value) {
+            throw new InvalidArgumentException("Unavailable account balance");
+        }
+        (float) $account->balance -= $value;
+        $account->save();
+
+        return $account;
     }
 
     /**
-     * Updates bank account balance
+     * Execute deposit procedure
      *
      * @param string $accountNumber
-     * @param float $newBalance
+     * @param int $customerId
+     * @param float $value
      * @return BankAccount
      */
-    public function updateBalance(string $accountNumber, float $newBalance): BankAccount
+    public function deposit(string $accountNumber, int $customerId, float $value): BankAccount
     {
-        return new BankAccount();
+        $account = $this->get($customerId, $accountNumber);
+        if ($value <= 0.00) {
+            throw new InvalidArgumentException("Value has to be greater than 0.00");
+        }
+        (float) $account->balance += $value;
+        $account->save();
+
+        return $account;
+    }
+
+    /**
+     * Execute transfer procedure
+     *
+     * @param string $originAccount
+     * @param string $destinationAccount
+     * @param int $customerId
+     * @param float $balance
+     * @return BankAccount
+     */
+    public function transfer(
+        string $originAccount,
+        string $destinationAccount,
+        int $customerId,
+        float $balance
+    ): BankAccount {
+        $originAccountObject = $this->withdraw($originAccount, $customerId, $balance);
+        $destinationAccountObject = $this->account->where('account_number', $destinationAccount)->firstOrFail();
+        $this->deposit($destinationAccount, (int) $destinationAccountObject->user_id, $balance);
+        return $originAccountObject;
     }
 }
