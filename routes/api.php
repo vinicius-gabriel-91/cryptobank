@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\BankAccount\Withdraw;
 use App\Http\Controllers\Api\Customer\Auth\Authenticate;
 use App\Http\Controllers\Api\BankAccount\Get as GetBankAccount;
 use App\Http\Controllers\Api\BankAccount\Create as CreateAccount;
+use App\Http\Controllers\Api\TansactionLog\Get as GetTransactions;
 
 Route::post('/customer/login', [Authenticate::class, 'login']);
 Route::post('/customer/create', [Create::class, 'createCustomer']);
@@ -24,3 +25,4 @@ Route::delete('/customer/delete', [Delete::class, 'deleteCustomer'])->middleware
 Route::post('/account/create', [CreateAccount::class, 'createAccount'])->middleware('auth:sanctum');
 Route::get('/account/accountList', [GetBankAccount::class, 'getAccountList'])->middleware('auth:sanctum');
 Route::get('/account/account/{accountNumber}', [GetBankAccount::class, 'getAccount'])->middleware('auth:sanctum');
+Route::get('/account/transactions/{accountNumber}', [GetTransactions::class, 'getTransactions'])->middleware('auth:sanctum');

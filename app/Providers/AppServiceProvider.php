@@ -22,6 +22,10 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\BankAccount\BankAccountRepository::class
         );
         app()->bind(
+            \App\Models\Api\TransactionLogRepositoryInterface::class,
+            \App\Models\TransactionLog\TransactionLogRepository::class
+        );
+        app()->bind(
             \Facade\FlareClient\Time\Time::class,
             \Facade\FlareClient\Time\SystemTime::class
         );

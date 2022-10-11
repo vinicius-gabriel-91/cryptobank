@@ -9,18 +9,23 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Models\Api\BankAccountRepositoryInterface;
+use App\Models\Api\TransactionLogRepositoryInterface;
 
 class Transfer extends Controller
 {
     private BankAccountRepositoryInterface $bankAccountRepository;
+    private TransactionLogRepositoryInterface $transactionLogRepository;
 
     /**
      * @param BankAccountRepositoryInterface $bankAccountRepository
+     * @param TransactionLogRepositoryInterface $transactionLogRepository
      */
     public function __construct(
-        BankAccountRepositoryInterface $bankAccountRepository
+        BankAccountRepositoryInterface $bankAccountRepository,
+        TransactionLogRepositoryInterface $transactionLogRepository
     ) {
         $this->bankAccountRepository = $bankAccountRepository;
+        $this->transactionLogRepository = $transactionLogRepository;
     }
 
     /**
@@ -37,12 +42,20 @@ class Transfer extends Controller
             'destinationAccount' => ['required', 'string']
         ]);
         try {
-            return $this->bankAccountRepository->transfer(
+            $transfer = $this->bankAccountRepository->transfer(
                 $request->originAccount,
                 $request->destinationAccount,
                 $request->user()->id,
                 (float) $request->balance
             );
+            $this->transactionLogRepository->create(
+                (int) $transfer->id,
+                $request->originAccount,
+                TransactionLogRepositoryInterface::TRANSFER_CODE,
+                (string) $request->balance,
+                $request->destinationAccount,
+            );
+            return $transfer;
         } catch (\Exception $exception) {
             return response()
                 ->json([

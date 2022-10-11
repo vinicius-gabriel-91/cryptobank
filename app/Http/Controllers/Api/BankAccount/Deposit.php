@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Models\Api\BankAccountRepositoryInterface;
+use App\Models\Api\TransactionLogRepositoryInterface;
 
 /**
  * Execute deposit request
@@ -16,14 +17,18 @@ use App\Models\Api\BankAccountRepositoryInterface;
 class Deposit extends Controller
 {
     private BankAccountRepositoryInterface $bankAccountRepository;
+    private TransactionLogRepositoryInterface $transactionLogRepository;
 
     /**
      * @param BankAccountRepositoryInterface $bankAccountRepository
+     * @param TransactionLogRepositoryInterface $transactionLogRepository
      */
     public function __construct(
-        BankAccountRepositoryInterface $bankAccountRepository
+        BankAccountRepositoryInterface $bankAccountRepository,
+        TransactionLogRepositoryInterface $transactionLogRepository
     ) {
         $this->bankAccountRepository = $bankAccountRepository;
+        $this->transactionLogRepository = $transactionLogRepository;
     }
 
     /**
@@ -39,11 +44,18 @@ class Deposit extends Controller
             'bankAccount' => ['required', 'string']
         ]);
         try {
-            return $this->bankAccountRepository->deposit(
+            $deposit = $this->bankAccountRepository->deposit(
                 $request->bankAccount,
                 $request->user()->id,
                 (float) $request->balance
             );
+            $this->transactionLogRepository->create(
+                (int) $deposit->id,
+                $request->bankAccount,
+                TransactionLogRepositoryInterface::DEPOSIT_CODE,
+                (string) $request->balance,
+            );
+            return $deposit;
         } catch (\Exception $exception) {
             return response()
                 ->json([
