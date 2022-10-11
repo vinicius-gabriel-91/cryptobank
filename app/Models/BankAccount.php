@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class BankAccount extends Model
 {
@@ -19,4 +20,14 @@ class BankAccount extends Model
         'account_number',
         'balance'
     ];
+
+    /**
+     * Defines transactions relationship
+     *
+     * @return HasMany
+     */
+    public function transactions(): HasMany
+    {
+        return $this->hasMany(TransactionLog::class);
+    }
 }

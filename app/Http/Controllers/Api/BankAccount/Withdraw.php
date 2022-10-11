@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Models\Api\BankAccountRepositoryInterface;
+use App\Models\Api\TransactionLogRepositoryInterface;
 
 /**
  * Execute withdraw request
@@ -16,14 +17,17 @@ use App\Models\Api\BankAccountRepositoryInterface;
 class Withdraw extends Controller
 {
     private BankAccountRepositoryInterface $bankAccountRepository;
+    private TransactionLogRepositoryInterface $transactionLogRepository;
 
     /**
      * @param BankAccountRepositoryInterface $bankAccountRepository
      */
     public function __construct(
-        BankAccountRepositoryInterface $bankAccountRepository
+        BankAccountRepositoryInterface $bankAccountRepository,
+        TransactionLogRepositoryInterface $transactionLogRepository
     ) {
         $this->bankAccountRepository = $bankAccountRepository;
+        $this->transactionLogRepository = $transactionLogRepository;
     }
 
     /**
@@ -39,11 +43,18 @@ class Withdraw extends Controller
             'bankAccount' => ['required', 'string']
         ]);
         try {
-            return $this->bankAccountRepository->withdraw(
+            $withdraw = $this->bankAccountRepository->withdraw(
                 $request->bankAccount,
                 $request->user()->id,
                 (float) $request->balance
             );
+            $this->transactionLogRepository->create(
+                (int) $withdraw->id,
+                $request->bankAccount,
+                TransactionLogRepositoryInterface::WITHDRAW_CODE,
+                (string) $request->balance,
+            );
+            return $withdraw;
         } catch (\Exception $exception) {
             return response()
                 ->json([
