@@ -31,10 +31,14 @@ class Get extends Controller
      * Retrieves logged customer
      *
      * @param Request $request
-     * @return User
+     * @return array
      */
-    public function getCustomer(Request $request): User
+    public function getCustomer(Request $request): array
     {
-        return $this->customerRepository->get((int) $request->user()->id);
+        $customer = $this->customerRepository->get((int) $request->user()->id);
+        $customerData = $customer->toArray();
+        unset($customerData['address']);
+        $address = json_decode($customer->address, true);
+        return array_merge($customerData, $address);
     }
 }
