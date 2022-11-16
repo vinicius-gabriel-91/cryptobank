@@ -17,6 +17,18 @@ use App\Models\Services\Validations\ArgumentsValidator;
 
 class Edit extends Controller
 {
+    public const EDIT_CUSTOMER_REQUIRED_FIELDS = [
+        'name',
+        'last_name',
+        'street',
+        'street_number',
+        'complement',
+        'post_code',
+        'city',
+        'state',
+        'email'
+    ];
+
     private LoggerInterface $logger;
     private Response $response;
     private CustomerRepositoryInterface $customerRepository;
@@ -52,7 +64,7 @@ class Edit extends Controller
     {
         try {
             $this->argumentsValidator->validateArguments(
-            CustomerRepositoryInterface::EDIT_CUSTOMER_REQUIRED_FIELDS,
+            self::EDIT_CUSTOMER_REQUIRED_FIELDS,
             $request->all()
         );
         } catch (\Exception $exception) {
@@ -65,6 +77,16 @@ class Edit extends Controller
             return $this->response->setContent($result);
         }
 
-        return $this->customerRepository->edit((int) $request->user()->id, $request->all());
+        $address = json_encode([
+            'street' => $request->street,
+            'street_number' =>$request->street_number,
+            'complement' =>$request->complement,
+            'post_code' => $request->post_code,
+            'city' => $request->city,
+            'state' => $request->state
+        ]);
+        $customerData = array_merge($request->all(), ['address' => $address]);
+
+        return $this->customerRepository->edit((int) $request->user()->id, $customerData);
     }
 }
